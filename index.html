@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>麒麟EV | 智能电动新时代</title>
+    <head>
+        <!-- 基础 favicon -->
+        <link rel="icon" type="image/svg+xml" href="icon/favicon.svg">
+        <link rel="icon" type="image/x-icon" href="icon/favicon.ico">
+        <link rel="icon" href="icon//favicon.svg" type="image/svg+xml" sizes="16x16">
+        <link rel="icon" href="icon/favicon.svg" type="image/svg+xml" sizes="32x32">
+        <link rel="icon" href="icon//favicon.svg" type="image/svg+xml" sizes="64x64">
+      
+        <!-- 苹果 Touch Icon（Safari/添加到主屏幕） -->
+        <link rel="apple-touch-svg" href="icon/favicon.svg">
+      
+        <!-- PWA 安卓图标 -->
+        <link rel="manifest" href="icon/favicon.svg">
+      </head>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 全局基础样式 - 背景增加网格和动态圆点 */
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Helvetica Neue', Helvetica, 'Noto Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            background: #0A2F6C;
+            /* 蓝色渐变背景作为底层 */
+            background: linear-gradient(135deg, #05c2e8 10%, #4e0cb8 30%,#2f12d3 60%, #051448 90%);
+        }
+
+        /* 白色网格层 - 使用 repeating-linear-gradient 绘制网格线，降低透明度 */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 让网格不干扰点击交互 */
+            z-index: 0;
+            background-image: 
+                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.1) 0px, rgba(255, 255, 255, 0.1) 1px, transparent 1px, transparent 40px),
+                repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0px, rgba(255, 255, 255, 0.1) 1px, transparent 1px, transparent 40px);
+            background-size: 40px 40px;
+        }
+
+        /* 动态闪烁圆点容器 */
+        .dots-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* 闪烁圆点样式 */
+        .glow-dot {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            animation: pulseGlow 3s ease-in-out infinite;
+            opacity: 0;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+                box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1);
+                box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.8);
+                box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+            }
+        }
+
+        /* 主容器：全屏自适应，相对定位确保内容在网格之上 */
+        .main-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: transparent;
+            border-radius: 48px;
+        }
+
+        /* 主要上下内容区域 */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+            padding: 30px 20px;
+        }
+
+        /* 左侧文字区块 */
+        .left-brand {
+            flex: 1.2;
+            min-width: 260px;
+            color: white;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .brand-name {
+            font-size: clamp(3rem, 12vw, 6rem);
+            font-weight: 800;
+            letter-spacing: 0.0em;
+            line-height: 1.1;
+            margin-bottom: 0.3em;
+            background: linear-gradient(135deg, #ffffff, #ffffff60);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: none;
+        }
+
+        .sub-domain {
+            font-size: clamp(1.2rem, 5vw, 2.8rem);
+            font-weight: 900;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            letter-spacing: 1px;
+            word-break: break-word;
+            background: linear-gradient(135deg, #ffffff, #ffffff60);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: none;
+        }
+
+        .domain-desc {
+            font-size: clamp(0.85rem, 4vw, 1rem);
+            line-height: 1.5;
+            max-width: 90%;
+            opacity: 0.85;
+            font-weight: 400;
+            border-left: 4px solid rgba(255,255,255,0.6);
+            padding-left: 16px;
+            margin-top: 8px;
+        }
+
+        /* 右侧磨砂玻璃圆角矩形卡片 - 无图标，文字无底色 */
+        .glass-card {
+            flex: 0.8;
+            min-width: 280px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 32px 28px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255,255,255,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            animation: fadeInRight 0.8s ease-out;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.25);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .card-title {
+            font-size: clamp(1.6rem, 6vw, 2.2rem);
+            font-weight: 700;
+            margin-bottom: 32px;
+            letter-spacing: -0.3px;
+            border-left: 4px solid #fff;
+            padding-left: 18px;
+            line-height: 1.2;
+        }
+
+        /* 联系方式项 - 无底色，无图标，纯文字 */
+        .contact-item {
+            margin-bottom: 28px;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+
+        .contact-label {
+            font-weight: 600;
+            font-size: 1rem;
+            display: inline-block;
+            margin-right: 12px;
+        }
+
+        .contact-info {
+            font-weight: 500;
+            word-break: break-all;
+            display: inline-block;
+        }
+
+        .contact-info a {
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px dotted rgba(255,255,255,0.6);
+            transition: border-color 0.2s;
+        }
+
+        .contact-info a:hover {
+            color: #FFE484;
+            border-bottom-color: #FFE484;
+        }
+
+        /* 二维码区域 - 纯图片占位，由用户自行替换 */
+        .qrcode-area {
+            margin-top: 28px;
+            text-align: center;
+        }
+
+        .qrcode-title {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 16px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .qr-image-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        .qr-placeholder-img {
+            width: 120px;
+            height: 120px;
+            background: #ffffff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .qr-placeholder-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .qr-note {
+            font-size: 16px;
+            margin-top: 12px;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+
+        /* 底部栏 */
+        .footer {
+            text-align: center;
+            padding: 20px 15px 15px;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            /* border-top: 1px solid rgba(255,255,255,0.2); */
+            margin-top: 20px;
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px 28px;
+        }
+
+        .footer-item, .footer-links a {
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            transition: color 0.2s;
+            font-weight: 400;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-links a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        /* 动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* 小屏幕优化 */
+        @media (max-width: 780px) {
+            .content-area {
+                flex-direction: column;
+                justify-content: center;
+                padding: 20px 16px;
+                gap: 35px;
+            }
+            .left-brand {
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .domain-desc {
+                max-width: 100%;
+                text-align: center;
+                border-left: none;
+                padding-left: 0;
+                border-top: 2px solid rgba(255,255,255,0.4);
+                padding-top: 12px;
+                margin-top: 12px;
+            }
+            .glass-card {
+                width: 100%;
+                max-width: 400px;
+                margin: 0 auto;
+                padding: 28px 24px;
+            }
+            .card-title {
+                text-align: center;
+                border-left: none;
+                border-bottom: 2px solid rgba(255,255,255,0.5);
+                padding-left: 0;
+                padding-bottom: 10px;
+                display: inline-block;
+                width: auto;
+            }
+            .contact-item {
+                text-align: center;
+            }
+            .contact-label {
+                display: block;
+                margin-bottom: 6px;
+                margin-right: 0;
+            }
+            .contact-info {
+                display: block;
+            }
+            .footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .footer-links {
+                justify-content: center;
+                gap: 18px;
+            }
+        }
+
+        @media (min-width: 1400px) {
+            .glass-card {
+                padding: 40px 36px;
+            }
+            .brand-name {
+                font-size: 5.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 白色网格层 -->
+    <div class="grid-overlay"></div>
+    <!-- 动态闪烁圆点层 -->
+    <div class="dots-overlay" id="dotsOverlay"></div>
+
+    <div class="main-container">
+        <div class="content-area">
+            <!-- 左侧品牌区 -->
+            <div class="left-brand">
+                
+                <div class="brand-name">全球顶级域名</div>
+                <img src="icon/logo.png" width="84px" style="float: left; margin-right:4px;"><div class="brand-name">麒麟EV</div>
+                <div class="sub-domain">QILINEV.COM</div>
+                <div class="domain-desc">
+                    “麒麟” 是通用文化符号，EV 是行业通用缩写，无商标冲突隐患。<br>
+                    “麒麟 EV” 朗朗上口，自带国产高端 + 科技 + 祥瑞三重属性，适合做独立品牌与出海。<br>
+                    可直接用于：新能源车企、电池 / 储能、车规级芯片、充电桩、等新能源科技公司/品牌。
+                </div>
+            </div>
+
+            <!-- 右侧磨砂玻璃质感卡片 - 无图标，文字无底色 -->
+            <div class="glass-card">
+                <div class="card-title">联系方式</div>
+                <div class="contact-item">
+                    <div class="contact-label">邮箱</div>
+                    <div class="contact-info"><a href="###">907488570@qq.com</a></div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-label">电话</div>
+                    <div class="contact-info"><a href="###">壹伍柒叁叁壹贰零肆零贰&nbsp;需注明来意</a></div>
+                </div>
+                <div class="qrcode-area">
+                    <div class="qrcode-title">优质域名 · 长期持有</div>
+                    <div class="qr-image-wrapper">
+                        <div class="qr-placeholder-img" id="qrImageContainer">
+                            <!-- 二维码图片占位-->
+                            <img src="icon/wx.jpg"style="width:100%; height:100%; object-fit:contain;">
+                        </div>
+                    </div>
+                    <div class="qr-note">扫码加V，获取最新报价服务</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部区域 -->
+        <div class="footer">
+            <div class="footer-item">© 2026 麒麟EV · 智行未来</div>
+            <div class="footer-item">京ICP备 25031288号-1</div>
+            <div class="footer-links">
+                <a href="#" class="footer-item">隐私协议</a>
+                <a href="#" class="footer-item">服务条款</a>
+                <a href="#" class="footer-item">法律声明</a>
+            </div>
+            <div class="footer-item">本网站仅供域名演示 | 数据安全合规</div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ================= 动态生成闪烁圆点 =================
+            const dotsContainer = document.getElementById('dotsOverlay');
+            if (dotsContainer) {
+                // 圆点数量根据屏幕大小动态调整，小屏幕少一些，大屏幕多一些，但总体保持美观
+                const getDotCount = () => {
+                    const width = window.innerWidth;
+                    if (width < 768) return 20;
+                    if (width < 1200) return 35;
+                    return 50;
+                };
+                
+                // 生成随机圆点
+                function generateDots() {
+                    dotsContainer.innerHTML = '';
+                    const count = getDotCount();
+                    for (let i = 0; i < count; i++) {
+                        const dot = document.createElement('div');
+                        dot.className = 'glow-dot';
+                        
+                        // 随机大小：2px - 6px 之间
+                        const size = Math.random() * 5 + 2;
+                        dot.style.width = size + 'px';
+                        dot.style.height = size + 'px';
+                        
+                        // 随机位置 (百分比，确保覆盖全屏)
+                        const posX = Math.random() * 100;
+                        const posY = Math.random() * 100;
+                        dot.style.left = posX + '%';
+                        dot.style.top = posY + '%';
+                        
+                        // 随机动画延迟 (0s 到 5s 之间)，让闪烁错落有致
+                        const delay = Math.random() * 5;
+                        dot.style.animationDelay = delay + 's';
+                        
+                        // 随机动画时长 (2s 到 5s 之间)
+                        const duration = Math.random() * 3 + 2;
+                        dot.style.animationDuration = duration + 's';
+                        
+                        // 随机透明度初始值微调
+                        dot.style.opacity = '0';
+                        
+                        dotsContainer.appendChild(dot);
+                    }
+                }
+                
+                generateDots();
+                
+                // 监听窗口大小变化，重新生成圆点以适应新尺寸（防抖处理）
+                let resizeTimer;
+                window.addEventListener('resize', function() {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(() => {
+                        generateDots();
+                    }, 200);
+                });
+            }
+            
+            // ================= 底部协议提示功能 =================
+            const privacyLink = document.querySelector('.footer-links a:first-child');
+            const termsLink = document.querySelector('.footer-links a:nth-child(2)');
+            const legalLink = document.querySelector('.footer-links a:last-child');
+            
+            function showMessage(msg) {
+                let tip = document.createElement('div');
+                tip.innerText = msg;
+                tip.style.position = 'fixed';
+                tip.style.bottom = '30px';
+                tip.style.left = '50%';
+                tip.style.transform = 'translateX(-50%)';
+                tip.style.backgroundColor = 'rgba(0,0,0,0.75)';
+                tip.style.backdropFilter = 'blur(12px)';
+                tip.style.color = 'white';
+                tip.style.padding = '10px 24px';
+                tip.style.borderRadius = '40px';
+                tip.style.fontSize = '0.85rem';
+                tip.style.zIndex = '1000';
+                tip.style.fontWeight = '500';
+                tip.style.pointerEvents = 'none';
+                tip.style.whiteSpace = 'nowrap';
+                tip.style.fontFamily = 'system-ui, sans-serif';
+                tip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+                document.body.appendChild(tip);
+                setTimeout(() => {
+                    tip.style.opacity = '0';
+                    tip.style.transition = 'opacity 0.3s';
+                    setTimeout(() => tip.remove(), 300);
+                }, 2000);
+            }
+            
+            if(privacyLink) {
+                privacyLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showMessage('《隐私协议》详细内容请参阅官方文档，本页为麒麟EV品牌展示。');
+                });
+            }
+            if(termsLink) {
+                termsLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showMessage('《服务条款》规范用户与平台权益，致力于打造安全透明的电动出行生态。');
+                });
+            }
+            if(legalLink) {
+                legalLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showMessage('法律声明：本网站展示内容归麒麟EV所有，最终解释权归qilinev.com所有。');
+                });
+            }
+            
+            // 二维码图片替换提示（控制台友好输出）
+            console.log('提示：如需替换二维码图片，请找到 .qr-placeholder-img 内的 img 标签，修改 src 属性为您自己的二维码图片地址。');
+            
+            // 可选：为邮箱电话添加点击提示不干扰体验
+            const emailEl = document.querySelector('.contact-info a[href^="mailto"]');
+            const phoneEl = document.querySelector('.contact-info a[href^="tel"]');
+            if(emailEl) {
+                emailEl.addEventListener('click', () => {
+                    // 保持默认行为
+                });
+            }
+            if(phoneEl) {
+                phoneEl.addEventListener('click', () => {
+                    // 保持默认行为
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
